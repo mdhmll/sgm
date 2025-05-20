@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold">Система управления учебной группой</h1>
+                <p class="lead my-4">Современная платформа для эффективного управления учебным процессом</p>
+                <hr class="my-4">
+                <p class="mb-4">Автоматизированная система для организации учебного процесса, контроля успеваемости и посещаемости студентов, управления расписанием занятий и групп.</p>
+                {% if not current_user.is_authenticated %}
+                <div class="mt-4 d-flex gap-3">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Войти в систему
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Зарегистрироваться
+                    </a>
+                </div>
+                {% else %}
+                <div class="mt-4">
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-tachometer-alt me-2"></i>Перейти в панель управления
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-4 d-none d-lg-block">
+                <img src="https://img.freepik.com/free-vector/education-concept-illustration_114360-7891.jpg" class="img-fluid rounded" alt="Образование">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h2>Основные возможности системы</h2>
+        <p class="lead text-muted">Все необходимые инструменты для организации учебного процесса</p>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center py-4">
+                    <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Управление студентами</h5>
+                    <p class="card-text">Удобное добавление, редактирование и учёт данных о студентах, формирование групп.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-center">
+                    {% if current_user.is_authenticated and current_user.role in ['admin', 'teacher'] %}
+                    <a href="{{ url_for('student.index') }}" class="btn btn-sm btn-outline-primary">Перейти к управлению</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center py-4">
+                    <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="fas fa-calendar-alt fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Расписание занятий</h5>
+                    <p class="card-text">Удобное управление расписанием занятий для учебных групп с возможностью поиска и фильтрации.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-center">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('schedule.index') }}" class="btn btn-sm btn-outline-primary">Просмотр расписания</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center py-4">
+                    <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="fas fa-chart-line fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Контроль успеваемости</h5>
+                    <p class="card-text">Отслеживание успеваемости студентов, выставление оценок и контроль посещаемости.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-center">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('performance.index') }}" class="btn btn-sm btn-outline-primary">Просмотр успеваемости</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5 py-4">
+    <div class="row g-4 align-items-center">
+        <div class="col-lg-6">
+            <h3>Преимущества использования системы</h3>
+            <div class="mt-4">
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h5>Автоматизация рутинных задач</h5>
+                        <p class="text-muted">Снижение временных затрат на оформление отчётности и ведение документации</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h5>Удобный доступ к информации</h5>
+                        <p class="text-muted">Централизованное хранение информации с мгновенным доступом для всех пользователей</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h5>Повышение эффективности обучения</h5>
+                        <p class="text-muted">Наглядное представление результатов и контроль успеваемости в реальном времени</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <img src="https://img.freepik.com/free-vector/teamwork-concept-landing-page_52683-20165.jpg" class="img-fluid rounded" alt="Командная работа">
+        </div>
+    </div>
+</div>
+{% endblock %}

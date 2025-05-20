@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Панель управления{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>Панель управления</h1>
+        <p>Добро пожаловать, {{ current_user.first_name }} {{ current_user.last_name }}!</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Быстрый доступ</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('schedule.index') }}">Расписание занятий</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('performance.index') }}">Успеваемость</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('performance.attendance') }}">Посещаемость</a>
+                    </li>
+                    {% if current_user.role in ['admin', 'teacher'] %}
+                    <li class="list-group-item">
+                        <a href="{{ url_for('student.index') }}">Список студентов</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Информация о пользователе</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Имя пользователя:</strong> {{ current_user.username }}</p>
+                        <p><strong>Email:</strong> {{ current_user.email }}</p>
+                        <p><strong>Имя:</strong> {{ current_user.first_name }}</p>
+                        <p><strong>Фамилия:</strong> {{ current_user.last_name }}</p>
+                        <p><strong>Роль:</strong> {{ current_user.role }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        {% if current_user.role == 'student' %}
+                        <p><strong>Группы:</strong></p>
+                        <ul>
+                            {% for group in current_user.groups %}
+                            <li>{{ group.name }} ({{ group.faculty }}, {{ group.year }} курс)</li>
+                            {% else %}
+                            <li>Вы не состоите ни в одной группе</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+
+                        {% if current_user.role == 'teacher' %}
+                        <p><strong>Предметы:</strong></p>
+                        <ul>
+                            {% for subject in current_user.subjects %}
+                            <li>{{ subject.name }}</li>
+                            {% else %}
+                            <li>У вас нет назначенных предметов</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

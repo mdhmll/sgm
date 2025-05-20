@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Список студентов{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Список студентов</h1>
+            {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('student.add') }}" class="btn btn-success">Добавить студента</a>
+            {% endif %}
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Имя пользователя</th>
+                            <th>Имя</th>
+                            <th>Фамилия</th>
+                            <th>Email</th>
+                            <th>Группы</th>
+                            {% if current_user.role == 'admin' %}
+                            <th>Действия</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ student.id }}</td>
+                            <td>{{ student.username }}</td>
+                            <td>{{ student.first_name }}</td>
+                            <td>{{ student.last_name }}</td>
+                            <td>{{ student.email }}</td>
+                            <td>
+                                {% for group in student.groups %}
+                                <span class="badge bg-primary">{{ group.name }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Не назначена</span>
+                                {% endfor %}
+                            </td>                            {% if current_user.role == 'admin' %}
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('student.edit', id=student.id) }}" class="btn btn-sm btn-primary">Редактировать</a>
+                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ student.id }}">
+                                        Удалить
+                                    </button>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="{% if current_user.role == 'admin' %}7{% else %}6{% endif %}" class="text-center">Нет студентов</td>
+                        </tr>
+                        {% endfor %}                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальные окна вынесены за пределы таблицы -->
+{% if current_user.role == 'admin' %}
+{% for student in students %}
+<!-- Модальное окно подтверждения удаления -->
+<div class="modal fade" id="deleteModal{{ student.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ student.id }}" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel{{ student.id }}">Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Вы уверены, что хотите удалить студента {{ student.first_name }} {{ student.last_name }}?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <form action="{{ url_for('student.delete', id=student.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Информация об оценке{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2>Информация об оценке</h2>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Предмет</label>
+                        <p class="form-control-static">{{ subject.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Преподаватель</label>
+                        <p class="form-control-static">{{ subject.teacher.last_name }} {{ subject.teacher.first_name }}</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Оценка</label>
+                        <p>
+                            <span class="badge {% if grade.value == 5 %}bg-success{% elif grade.value == 4 %}bg-info{% elif grade.value == 3 %}bg-warning{% elif grade.value == 2 %}bg-danger{% else %}bg-secondary{% endif %}" style="font-size: 1.2em;">
+                                {{ grade.value }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Дата</label>
+                        <p class="form-control-static">{{ grade.date.strftime('%d.%m.%Y') }}</p>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Комментарий</label>
+                    <p class="form-control-static">{{ grade.comment or 'Комментарий отсутствует' }}</p>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <a href="{{ url_for('performance.index') }}" class="btn btn-primary">Назад</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

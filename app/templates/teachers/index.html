@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Управление преподавателями{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-chalkboard-teacher me-2"></i>Управление преподавателями</h1>
+            <a href="{{ url_for('teacher.add') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Добавить преподавателя
+            </a>
+        </div>
+        
+        {% if teachers %}
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Список преподавателей</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Имя пользователя</th>
+                                <th>Фамилия</th>
+                                <th>Имя</th>
+                                <th>Email</th>
+                                <th>Предметы</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for teacher in teachers %}
+                            <tr>
+                                <td>{{ teacher.id }}</td>
+                                <td>{{ teacher.username }}</td>
+                                <td>{{ teacher.last_name }}</td>
+                                <td>{{ teacher.first_name }}</td>
+                                <td>{{ teacher.email }}</td>
+                                <td>
+                                    {% for subject in teacher.subjects %}
+                                    <span class="badge bg-info">{{ subject.name }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Не назначены</span>
+                                    {% endfor %}
+                                </td>
+                                <td>                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('teacher.edit', id=teacher.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                data-bs-toggle="modal" data-bs-target="#deleteModal{{ teacher.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>                </div>
+            </div>
+        </div>
+        
+        <!-- Модальные окна вынесены за пределы таблицы -->
+        {% for teacher in teachers %}
+        <div class="modal fade" id="deleteModal{{ teacher.id }}" tabindex="-1" 
+             aria-labelledby="deleteModalLabel{{ teacher.id }}" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel{{ teacher.id }}">Подтверждение удаления</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Вы уверены, что хотите удалить преподавателя {{ teacher.last_name }} {{ teacher.first_name }}?</p>
+                          {% if teacher.subjects %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Внимание!</strong> Этот преподаватель ведет следующие предметы:
+                            <ul class="mb-0 mt-2">
+                                {% for subject in teacher.subjects %}
+                                <li>{{ subject.name }}</li>
+                                {% endfor %}
+                            </ul>
+                            <p class="mt-2 mb-0">При удалении преподаватель будет откреплен от этих предметов.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <form action="{{ url_for('teacher.delete', id=teacher.id) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> Нет доступных преподавателей. Добавьте первого преподавателя!
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

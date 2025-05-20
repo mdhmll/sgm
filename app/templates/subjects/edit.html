@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование предмета{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-edit me-2"></i>Редактирование предмета "{{ subject.name }}"</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('subjects.edit', id=subject.id) }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Название предмета <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required 
+                               value="{{ subject.name }}" placeholder="Например: Математика">
+                        <div class="form-text">Введите уникальное название предмета</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"
+                               placeholder="Описание предмета...">{{ subject.description }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="teacher_id" class="form-label">Преподаватель</label>
+                        <select class="form-select" id="teacher_id" name="teacher_id">
+                            <option value="">Выберите преподавателя</option>
+                            {% for teacher in teachers %}
+                            <option value="{{ teacher.id }}" {% if subject.teacher_id == teacher.id %}selected{% endif %}>
+                                {{ teacher.last_name }} {{ teacher.first_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i> 
+                            Предмет используется в {{ subject.schedules.count() }} записях расписания 
+                            и имеет {{ subject.grades.count() }} оценок.
+                        </p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('subjects.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Назад к списку
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Сохранить изменения
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

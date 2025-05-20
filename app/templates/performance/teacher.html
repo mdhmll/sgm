@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Успеваемость - Преподаватель{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>Успеваемость студентов</h1>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Фильтры</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{{ url_for('performance.index') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="subject_id" class="form-label">Предмет</label>
+                            <select class="form-select" id="subject_id" name="subject_id" onchange="this.form.submit()">
+                                {% for subject in subjects %}
+                                <option value="{{ subject.id }}" {% if selected_subject_id == subject.id %}selected{% endif %}>
+                                    {{ subject.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="group_id" class="form-label">Группа</label>
+                            <select class="form-select" id="group_id" name="group_id" onchange="this.form.submit()">
+                                <option value="">Выберите группу</option>
+                                {% for group in groups %}
+                                <option value="{{ group.id }}" {% if selected_group_id == group.id %}selected{% endif %}>
+                                    {{ group.name }} ({{ group.faculty }}, {{ group.year }} курс)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if students %}
+        <div class="d-flex justify-content-end mb-3">
+            <a href="{{ url_for('performance.add_grade', subject_id=selected_subject_id, group_id=selected_group_id) }}" 
+               class="btn btn-success {% if not selected_subject_id or not selected_group_id %}disabled{% endif %}">
+                <i class="fas fa-plus-circle me-2"></i>Добавить оценку
+            </a>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    {% if selected_group_id %}
+                    Студенты группы {{ groups|selectattr('id', 'eq', selected_group_id)|first|attr('name') }}
+                    {% if selected_subject_id %}
+                    - {{ subjects|selectattr('id', 'eq', selected_subject_id)|first|attr('name') }}
+                    {% endif %}
+                    {% else %}
+                    Выберите группу для просмотра студентов
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if selected_group_id %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Студент</th>
+                            <th>Оценки</th>
+                            <th>Средний балл</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ student.last_name }} {{ student.first_name }}</td>
+                            <td>                                {% set student_grades = grades|selectattr('student_id', 'eq', student.id)|list %}
+                                {% if student_grades %}                                {% for grade in student_grades %}                                <a href="{{ url_for('performance.edit_grade', grade_id=grade.id) }}" class="text-decoration-none">                                    <span class="badge grade-badge {% if grade.value == 5 %}bg-success{% elif grade.value == 4 %}bg-info{% elif grade.value == 3 %}bg-warning{% elif grade.value == 2 %}bg-danger{% else %}bg-secondary{% endif %} me-1" 
+                                         title="{{ grade.date.strftime('%d.%m.%Y') }}: {{ grade.comment or 'Без комментария' }}"
+                                         data-value="{{ grade.value }}"
+                                         data-date="{{ grade.date.strftime('%d.%m.%Y') }}"
+                                         data-comment="{{ grade.comment or '' }}">
+                                        {{ grade.value }}
+                                    </span>
+                                </a>
+                                {% endfor %}
+                                {% else %}
+                                <span class="text-muted">Нет оценок</span>
+                                {% endif %}
+                            </td>                            <td>
+                                {% if student_grades %}
+                                {% set avg_grade = (student_grades|sum(attribute='value') / student_grades|length)|round(2) %}                                <span class="badge {% if avg_grade >= 4.5 %}bg-success{% elif avg_grade >= 3.5 %}bg-info{% elif avg_grade >= 2.5 %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ avg_grade }}
+                                </span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('performance.add_grade', subject_id=selected_subject_id, student_id=student.id) }}" 
+                                       class="btn btn-sm btn-primary" title="Добавить оценку">
+                                        <i class="fas fa-plus me-1"></i>Оценка
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+                                        <span class="visually-hidden">Действия</span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><h6 class="dropdown-header">Действия с оценками</h6></li>
+                                        {% if student_grades %}
+                                        {% for grade in student_grades %}
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('performance.edit_grade', grade_id=grade.id) }}">
+                                                <i class="fas fa-edit me-1"></i> Оценка {{ grade.value }} от {{ grade.date.strftime('%d.%m.%Y') }}
+                                            </a>
+                                        </li>
+                                        {% endfor %}
+                                        {% else %}
+                                        <li><span class="dropdown-item text-muted">Нет оценок для редактирования</span></li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>Выберите группу для просмотра успеваемости студентов.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if selected_group_id and selected_subject_id and grades %}
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Статистика успеваемости</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Всего оценок</h6>
+                                <h2>{{ grades|length }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Средний балл группы</h6>                                {% if grades %}
+                                {% set avg_grade = (grades|sum(attribute='value') / grades|length)|round(2) %}                                <h2 class="{% if avg_grade >= 4.5 %}text-success{% elif avg_grade >= 3.5 %}text-info{% elif avg_grade >= 2.5 %}text-warning{% else %}text-danger{% endif %}">
+                                    {{ avg_grade }}
+                                </h2>
+                                {% else %}
+                                <h2>-</h2>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Последняя оценка</h6>
+                                {% if grades %}
+                                <h2>{{ grades[0].date.strftime('%d.%m.%Y') }}</h2>
+                                {% else %}
+                                <h2>-</h2>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% elif selected_subject_id %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>Выберите группу, чтобы увидеть список студентов и их оценки.
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>Выберите предмет и группу для просмотра успеваемости студентов.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Моя посещаемость{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>Моя посещаемость</h1>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">История посещаемости</h5>
+            </div>
+            <div class="card-body">
+                {% if attendances %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>День недели</th>
+                            <th>Предмет</th>
+                            <th>Время</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attendance in attendances %}
+                        <tr>
+                            <td>{{ attendance.date.strftime('%d.%m.%Y') }}</td>
+                            <td>
+                                {% set day_names = {0: 'Понедельник', 1: 'Вторник', 2: 'Среда', 3: 'Четверг', 4: 'Пятница', 5: 'Суббота', 6: 'Воскресенье'} %}
+                                {{ day_names[attendance.schedule.day_of_week] }}
+                            </td>
+                            <td>{{ attendance.schedule.subject.name }}</td>
+                            <td>{{ attendance.schedule.start_time.strftime('%H:%M') }} - {{ attendance.schedule.end_time.strftime('%H:%M') }}</td>
+                            <td>
+                                {% if attendance.status %}
+                                <span class="badge bg-success">Присутствовал</span>
+                                {% else %}
+                                <span class="badge bg-danger">Отсутствовал</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-center">Нет данных о посещаемости</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

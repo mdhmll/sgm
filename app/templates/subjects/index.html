@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Управление предметами{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-book me-2"></i>Управление предметами</h1>
+            <a href="{{ url_for('subjects.add') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Добавить предмет
+            </a>
+        </div>
+        
+        {% if subjects %}
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Список предметов</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Описание</th>
+                                <th>Преподаватель</th>
+                                <th>Занятий в расписании</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in subjects %}
+                            <tr>
+                                <td>{{ subject.name }}</td>
+                                <td>{{ subject.description|truncate(50) }}</td>
+                                <td>
+                                    {% if subject.teacher %}
+                                    {{ subject.teacher.last_name }} {{ subject.teacher.first_name }}
+                                    {% else %}
+                                    <span class="text-muted">Не назначен</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ subject.schedules.count() }}</td>
+                                <td>                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('subjects.edit', id=subject.id) }}" class="btn btn-sm btn-primary" title="Редактировать">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                data-bs-toggle="modal" data-bs-target="#deleteModal{{ subject.id }}" title="Удалить">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>                </div>
+            </div>
+        </div>
+        
+        <!-- Модальные окна вынесены за пределы таблицы -->
+        {% for subject in subjects %}
+        <div class="modal fade" id="deleteModal{{ subject.id }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Удаление предмета</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Вы уверены, что хотите удалить предмет "{{ subject.name }}"?</p>
+                        {% if subject.schedules.count() %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> Внимание! 
+                            Для предмета создано {{ subject.schedules.count() }} записей в расписании. Удаление невозможно.
+                        </div>
+                        {% endif %}
+                        {% if subject.grades.count() %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> Внимание! 
+                            Для предмета существуют оценки. Удаление невозможно.
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <form action="{{ url_for('subjects.delete', id=subject.id) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-danger" 
+                                    {% if subject.schedules.count() or subject.grades.count() %}disabled{% endif %}>
+                                Удалить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> Нет доступных предметов. Создайте первый предмет!
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Расписание занятий{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Расписание занятий</h1>
+            {% if current_user.role in ['admin', 'teacher'] %}
+            <a href="{{ url_for('schedule.add') }}" class="btn btn-success">Добавить занятие</a>
+            {% endif %}
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Фильтр</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{{ url_for('schedule.index') }}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="group_id" class="form-label">Группа</label>
+                            <select class="form-select" id="group_id" name="group_id" onchange="this.form.submit()">
+                                <option value="">Все группы</option>
+                                {% for group in groups %}
+                                <option value="{{ group.id }}" {% if selected_group and group.id == selected_group.id %}selected{% endif %}>
+                                    {{ group.name }} ({{ group.faculty }}, {{ group.year }} курс)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% for day_num, day_name in days.items() %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">{{ day_name }}</h5>
+            </div>
+            <div class="card-body">
+                {% if schedule_by_day[day_num] %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Время</th>
+                            <th>Предмет</th>
+                            {% if not selected_group %}
+                            <th>Группа</th>
+                            {% endif %}
+                            <th>Преподаватель</th>
+                            <th>Аудитория</th>
+                            {% if current_user.role in ['admin', 'teacher'] %}
+                            <th>Действия</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for schedule in schedule_by_day[day_num] %}
+                        <tr>
+                            <td>{{ schedule.start_time.strftime('%H:%M') }} - {{ schedule.end_time.strftime('%H:%M') }}</td>
+                            <td>{{ schedule.subject.name }}</td>
+                            {% if not selected_group %}
+                            <td>{{ schedule.group.name }}</td>
+                            {% endif %}
+                            <td>{{ schedule.subject.teacher.first_name }} {{ schedule.subject.teacher.last_name }}</td>
+                            <td>{{ schedule.room }}</td>
+                            {% if current_user.role in ['admin', 'teacher'] %}
+                            <td>
+                                {% if current_user.role == 'admin' or (current_user.role == 'teacher' and schedule.subject.teacher_id == current_user.id) %}                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('schedule.edit', id=schedule.id) }}" class="btn btn-sm btn-primary">Редактировать</a>
+                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ schedule.id }}">
+                                        Удалить
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}                <p class="text-center">Нет занятий</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Модальные окна вынесены за пределы таблицы и карточек дней -->
+{% if current_user.role in ['admin', 'teacher'] %}
+    {% for day_num, day_schedules in schedule_by_day.items() %}
+        {% for schedule in day_schedules %}
+            {% if current_user.role == 'admin' or (current_user.role == 'teacher' and schedule.subject.teacher_id == current_user.id) %}
+            <div class="modal fade" id="deleteModal{{ schedule.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ schedule.id }}" aria-hidden="true" data-bs-backdrop="static">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteModalLabel{{ schedule.id }}">Подтверждение удаления</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Вы уверены, что хотите удалить занятие {{ schedule.subject.name }} ({{ schedule.start_time.strftime('%H:%M') }} - {{ schedule.end_time.strftime('%H:%M') }})?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <form action="{{ url_for('schedule.delete', id=schedule.id) }}" method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button type="submit" class="btn btn-danger">Удалить</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+{% endif %}
+
+{% endblock %}

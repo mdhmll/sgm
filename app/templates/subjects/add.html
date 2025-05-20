@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Добавление предмета{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-plus-circle me-2"></i>Добавление нового предмета</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('subjects.add') }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Название предмета <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required 
+                               placeholder="Например: Математика">
+                        <div class="form-text">Введите уникальное название предмета</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"
+                               placeholder="Описание предмета..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="teacher_id" class="form-label">Преподаватель</label>
+                        <select class="form-select" id="teacher_id" name="teacher_id">
+                            <option value="">Выберите преподавателя</option>
+                            {% for teacher in teachers %}
+                            <option value="{{ teacher.id }}">{{ teacher.last_name }} {{ teacher.first_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Вы можете назначить преподавателя позже</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('subjects.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Назад к списку
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Сохранить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Посещаемость{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>Посещаемость</h1>
+        
+        {% if current_user.role == 'student' %}
+        <!-- Шаблон для студента -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Ваша посещаемость</h5>
+            </div>
+            <div class="card-body">
+                {% if attendances %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Предмет</th>
+                            <th>Преподаватель</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attendance in attendances %}
+                        <tr>
+                            <td>{{ attendance.date.strftime('%d.%m.%Y') }}</td>
+                            <td>{{ attendance.schedule.subject.name }}</td>
+                            <td>{{ attendance.schedule.subject.teacher.last_name }} {{ attendance.schedule.subject.teacher.first_name }}</td>
+                            <td>
+                                {% if attendance.status %}
+                                <span class="badge bg-success">Присутствовал</span>
+                                {% else %}
+                                <span class="badge bg-danger">Отсутствовал</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-center">Нет данных о посещаемости</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% else %}
+        <!-- Шаблон для преподавателя и администратора -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Фильтры</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{{ url_for('performance.attendance') }}">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="group_id" class="form-label">Группа</label>
+                            <select class="form-select" id="group_id" name="group_id" onchange="this.form.submit()">
+                                <option value="">Выберите группу</option>
+                                {% for group in groups %}
+                                <option value="{{ group.id }}" {% if selected_group_id == group.id %}selected{% endif %}>
+                                    {{ group.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% if selected_group_id %}
+                        <div class="col-md-4 mb-3">
+                            <label for="schedule_id" class="form-label">Занятие</label>
+                            <select class="form-select" id="schedule_id" name="schedule_id" onchange="this.form.submit()">
+                                <option value="">Выберите занятие</option>
+                                {% for schedule in schedules %}
+                                <option value="{{ schedule.id }}" {% if selected_schedule_id == schedule.id %}selected{% endif %}>
+                                    {{ schedule.subject.name }} ({{ days[schedule.day_of_week] }}, {{ schedule.start_time.strftime('%H:%M') }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="date" class="form-label">Дата</label>
+                            <input type="date" class="form-control" id="date" name="date" value="{{ attendance_date.strftime('%Y-%m-%d') }}" onchange="this.form.submit()">
+                        </div>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if selected_schedule_id and students %}
+        <form method="post" action="{{ url_for('performance.record_attendance') }}">
+            <input type="hidden" name="schedule_id" value="{{ selected_schedule_id }}">
+            <input type="hidden" name="date" value="{{ attendance_date.strftime('%Y-%m-%d') }}">
+            
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Отметка посещаемости</h5>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Студент</th>
+                                <th>Статус</th>
+                                <th>Отметка</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>{{ student.last_name }} {{ student.first_name }}</td>
+                                <td>
+                                    {% set attendance = attendances|selectattr('student_id', 'eq', student.id)|first %}
+                                    {% if attendance %}
+                                        {% if attendance.status %}
+                                        <span class="badge bg-success">Присутствовал</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Отсутствовал</span>
+                                        {% endif %}
+                                    {% else %}
+                                    <span class="badge bg-secondary">Не отмечен</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="attendance_{{ student.id }}" name="attendance_{{ student.id }}" {% if attendance and attendance.status %}checked{% endif %}>
+                                        <label class="form-check-label" for="attendance_{{ student.id }}">Присутствовал</label>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer text-end">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </div>
+        </form>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
